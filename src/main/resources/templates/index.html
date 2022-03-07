@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Books</title>
+</head>
+
+<script>
+
+function validateSearch(){
+
+    var input1 = document.getElementById("titleSearch").value;
+    var input2 = document.getElementById("authorSearch").value;
+
+    if(input1 == "" && input2 == ""){
+        alert('at least one of the field should be filled');
+    }
+
+}
+
+</script>
+<body>
+    <h1 style="margin: 1px;">Books</h1>
+
+    <div class = "search_boxes" >
+
+        <form class="form-inline" th:action="@{/search}"  method="post" style="font-size: 80px;" onsubmit="validateSearch()">
+
+            <input placeholder="Title" type="text" th:name="titleAndAuthor" id="titleSearch" />
+            <input placeholder="Author" type="text" th:name="titleAndAuthor" id="authorSearch" />
+            <input type="submit" class="signUpBtn" value="Search" />
+
+        </form>
+
+    </div>
+
+    <div class = "bookList" >
+
+        <table border="1" cellpadding="10">
+
+        <thead>
+            <tr>
+                <th>Cover</th>
+                <th>
+                    <a th:href="@{'/page/' + ${currentPage} + '?sortField=title&sortDir=' + ${reverseSortDir} }">
+                        Title
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{'/page/' + ${currentPage} + '?sortField=author&sortDir=' + ${reverseSortDir} }">
+                        Author
+                    </a>
+                </th>
+            </tr>
+        </thead>
+
+        <tr th:each="book : ${bookList}">
+            <td><span style="font-weight: bolder;">Image: </span><span th:text="${book.thumbnailUrl}"> URL </span> <img th:src="@{${'/images/' + book.thumbnailUrl}}" width="80" height="100"></td>
+            <td><span style="font-weight: bolder;">Title: </span><span th:text="${book.title}"> Title </span></td>
+            <td><span style="font-weight: bolder;">Author: </span><span th:text="${book.author}"> Author </span></td>
+        </tr>
+
+    </table>
+    
+    </div>
+    <div>
+        Total Items: [[${totalItems}]] - Page [[${currentPage}]] of [[${totalPages}]]
+        &nbsp; - &nbsp;
+
+        <a th:if="${currentPage > 1}" th:href="@{'/page/1?sortField=' + ${sortField} + '&sortDir=' + ${sortDir}}">First</a>
+        <span th:unless="${currentPage > 1}">First</span>
+        &nbsp; &nbsp;
+
+        <a th:if="${currentPage > 1}" th:href="@{'/page/' + ${currentPage - 1} + '?sortField=' + ${sortField} + '&sortDir=' + ${sortDir}}">Previous</a>
+        <span th:unless="${currentPage > 1}">Previous</span>
+        &nbsp; &nbsp;
+
+        <span th:each = "i: ${#numbers.sequence(1, totalPages)}">
+            <a th:if="${i != currentPage}" th:href="@{'/page/' + ${i}}  + '?sortField=' + ${sortField} + '&sortDir=' + ${sortDir}">[[${i}]]</a>
+            <span th:unless ="${i != currentPage}">[[${i}]]</span>
+            &nbsp; &nbsp;
+        </span>
+
+        <a th:if="${currentPage < totalPages}" th:href="@{'/page/' + ${currentPage + 1} + '?sortField=' + ${sortField} + '&sortDir=' + ${sortDir}}">Next</a>
+        <span th:unless="${currentPage < totalPages}">Next</span>
+        &nbsp; &nbsp;
+
+        <a th:if="${currentPage < totalPages}" th:href="@{'/page/' + ${totalPages} + '?sortField=' + ${sortField} + '&sortDir=' + ${sortDir}}">Last</a>
+        <span th:unless="${currentPage < totalPages}">Last</span>
+
+    </div>
+</body>
+</html>
