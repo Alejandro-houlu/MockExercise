@@ -1,5 +1,6 @@
 package sg.edu.nus.iss.MockExercise.Controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -39,16 +40,26 @@ public class BookController {
 	
         //List<Book> bookList = bService.findAll();
 
-        return listByPage(model, 1, "title", "asc");
+        return listByPage(model, 1, "title", "asc", "10");
     }
 
-	@GetMapping("/page/{pageNumber}")
+	@RequestMapping("/page/{pageNumber}")
 	public String listByPage(Model model, 
 	@PathVariable("pageNumber") Integer currentPage,
 	@Param("sortField") String sortField,
-	@Param("sortDir") String sortDir){
+	@Param("sortDir") String sortDir,
+	@RequestParam(value = "itemsPerPage", required = false) String itemsPerPage){
 
-		Page<Book> page = bService.listAll(currentPage, sortField, sortDir);
+		Integer items = 0;
+
+		if(itemsPerPage == null){
+			items = bService.getItemsPerPage();
+		}
+		else{
+			items = Integer.parseInt(itemsPerPage);
+			bService.recordNoOfItemsPerPage(items);
+		}
+		Page<Book> page = bService.listAll(currentPage, sortField, sortDir, items);
 		Long totalItems = page.getTotalElements();
 		Integer totalPages = page.getTotalPages();
 		List<Book> bookList = page.getContent();
@@ -59,6 +70,8 @@ public class BookController {
 		model.addAttribute("totalPages", totalPages);
 		model.addAttribute("sortField", sortField);
 		model.addAttribute("sortDir", sortDir);
+		model.addAttribute("items", items);
+
 
 		String reverseSortDir = sortDir.equals("asc") ? "desc" : "asc";
 		model.addAttribute("reverseSortDir", reverseSortDir);
@@ -68,17 +81,67 @@ public class BookController {
 	}
 
 	@RequestMapping("/search")
-	public String searchBook(@RequestParam(value = "titleAndAuthor", required = false) String searchParam, Model model){
+	public String searchBook(@RequestParam(value = "titleSearch", required = false) String titleSearch,
+							 @RequestParam(value = "authorSearch", required = false) String authorSearch, 
+							  Model model){
 
 		//System.out.println(searchParam);
+		
+		List<Book> searchResult = new ArrayList<>();
+		String error = "";
 
-		String[] search = searchParam.split(",");
-
-		if(search.length == 0){
+		if(titleSearch.isEmpty() && authorSearch.isEmpty()){
 			return "redirect:/home";
 		}
+		else{
+
+			if(titleSearch.isEmpty()){
+				searchResult = bService.searchAuthor(authorSearch.toLowerCase());
+			}
+			else if (authorSearch.isEmpty()){
+				searchResult = bService.searchTitle(titleSearch.toLowerCase());
+			}
+			else{
+
+				List<String> titleAndAuthor = new ArrayList<>();
+				titleAndAuthor.add(titleSearch.toLowerCase()); titleAndAuthor.add(authorSearch.toLowerCase());
+				searchResult = bService.searchTitleAndAutor(titleAndAuthor);
+			}
+		}
+
+		if(searchResult.isEmpty()){
+
+			error = "No results found";
+		}
+
+		model.addAttribute("searchResult",searchResult);
+		model.addAttribute("error",error);
+
 
 		return "searchResult";
+	}
+
+	@GetMapping("/searchId")
+	public String searchBookById(@RequestParam String bookIdSearch, Model model){
+
+		List<Book> searchResult = new ArrayList<>();
+		String error = "";
+
+		if(!bookIdSearch.isEmpty()){
+
+			var result = bRepo.findById(bookIdSearch); 
+			searchResult = result.stream().collect(Collectors.toList());
+		}
+
+		if(searchResult.isEmpty()){
+			error = "No results found";
+		}
+
+		model.addAttribute("searchResult", searchResult);
+		model.addAttribute("error", error);
+
+		return "searchResult";
+
 	}
 
 

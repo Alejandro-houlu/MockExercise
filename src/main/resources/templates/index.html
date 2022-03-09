@@ -28,11 +28,19 @@ function validateSearch(){
 
         <form class="form-inline" th:action="@{/search}"  method="post" style="font-size: 80px;" onsubmit="validateSearch()">
 
-            <input placeholder="Title" type="text" th:name="titleAndAuthor" id="titleSearch" />
-            <input placeholder="Author" type="text" th:name="titleAndAuthor" id="authorSearch" />
+            <input placeholder="Title" type="text" th:name="titleSearch" id="titleSearch" />
+            <input placeholder="Author" type="text" th:name="authorSearch" id="authorSearch" />
             <input type="submit" class="signUpBtn" value="Search" />
 
         </form>
+
+        <form class="form-inline" th:action="@{/searchId}" method="GET" style="font-size: 80px;">
+
+            <input placeholder="Book ID" type="text" name="bookIdSearch" id="bookIdSearch" required/>
+            <input type="submit" class="searchBtn" value="search" />
+
+        </form>
+
 
     </div>
 
@@ -89,6 +97,19 @@ function validateSearch(){
 
         <a th:if="${currentPage < totalPages}" th:href="@{'/page/' + ${totalPages} + '?sortField=' + ${sortField} + '&sortDir=' + ${sortDir}}">Last</a>
         <span th:unless="${currentPage < totalPages}">Last</span>
+        &nbsp; &nbsp;
+
+        <div>
+        Number of items per page: 
+        <form th:action="@{'/page/' + ${currentPage} + '?sortField=' + ${sortField} + '&sortDir=' + ${sortDir}}" method="post" style="display: inline;">
+            <select th:name="itemsPerPage" id="itemsPerPage" onchange="this.form.submit()">
+                <option value="" selected disabled hidden>[[${items}]]</option>
+                <option value="3">3</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+            </select>
+        </form>
+        </div>
 
     </div>
 </body>
